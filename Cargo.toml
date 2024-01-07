@@ -4,6 +4,7 @@ version = "1.0.0"
 authors = ["Christopher Hecker"]
 description = "Rust port of the Python astrometric plate solving package twirl"
 license = "MIT"
+repository = "https://github.com/ChHecker/twirs"
 categories = ["science"]
 keywords = ["astrometry"]
 edition = "2021"
