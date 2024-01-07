@@ -1,0 +1,16 @@
+accepted = [
+    "Apache-2.0",
+    "Apache-2.0 WITH LLVM-exception",
+    "MIT",
+    "BSD-2-Clause",
+    "BSD-3-Clause",
+    "Unicode-DFS-2016",
+]
+
+[kiddo.clarify]
+license = "MIT OR Apache-2.0"
+
+[[kiddo.clarify.files]]
+path = 'LICENSE-MIT'
+license = "MIT"
+checksum = "50a9962fefba5b80b8085d20fbdd36e8a0278aa694956a3834cec095f5904d60"
