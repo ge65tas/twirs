@@ -301,7 +301,7 @@ where
         let trafo = self.find_transform()?;
         let radecs_xy = transform_points(radecs.clone(), trafo.into_ndarray2());
         let matches = cross_match(pixels.view(), radecs_xy.view(), F::from_f64(10.).unwrap());
-        let (radesc_traf, pixels_traf): (Vec<RowVector2<F>>, Vec<RowVector2<F>>) = matches
+        let (radecs_traf, pixels_traf): (Vec<RowVector2<F>>, Vec<RowVector2<F>>) = matches
             .into_iter()
             .map(|[i, j]| (radecs.slice(s![j, ..]), pixels.slice(s![i, ..])))
             .map(|(radec, pixel)| {
@@ -312,7 +312,11 @@ where
             })
             .unzip();
 
-        let radecs_traf = MatrixXx2::from_rows(&radesc_traf);
+        if radecs_traf.is_empty() {
+            return None
+        }
+
+        let radecs_traf = MatrixXx2::from_rows(&radecs_traf);
         let pixels_traf = MatrixXx2::from_rows(&pixels_traf);
         Wcs::from_points(pixels_traf, radecs_traf)
     }
@@ -405,6 +409,10 @@ mod parallel {
                     )
                 })
                 .unzip();
+
+            if radecs_traf.is_empty() {
+                return None
+            }
 
             let radecs_traf = MatrixXx2::from_rows(&radecs_traf);
             let mut pixels_traf = MatrixXx2::from_rows(&pixels_traf);
