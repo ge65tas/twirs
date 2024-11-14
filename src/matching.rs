@@ -462,7 +462,7 @@ mod tests {
     use nalgebra::Vector2;
     use ndarray::{array, Array1, Array2};
     use ndarray_rand::{rand_distr::Normal, RandomExt};
-    use numpy::{PyArray2, ToPyArray};
+    use numpy::{PyArray2, ToPyArray, PyArrayMethods};
     use pyo3::{prelude::*, types::IntoPyDict};
     use rand::{distributions::Uniform, Rng};
 
@@ -475,19 +475,19 @@ mod tests {
         let count = super::count_cross_match(points1.view(), points2.view(), tol);
 
         let count_py: usize = Python::with_gil(|py| {
-            let twirl_match = py.import("twirl.match").unwrap();
+            let twirl_match = py.import_bound("twirl.match").unwrap();
 
-            let points1_py = points1.to_pyarray(py);
-            let points2_py = points2.to_pyarray(py);
+            let points1_py = points1.to_pyarray_bound(py);
+            let points2_py = points2.to_pyarray_bound(py);
 
-            let kwargs = [("tol", tol)].into_py_dict(py);
+            let kwargs = [("tol", tol)].into_py_dict_bound(py);
             let count = twirl_match
-                .call_method("count_cross_match", (points1_py, points2_py), Some(kwargs))
+                .call_method("count_cross_match", (points1_py, points2_py), Some(&kwargs))
                 .unwrap()
                 .extract()
                 .unwrap();
 
-            py.run("del twirl.match", None, None).unwrap();
+            // py.run_bound("del twirl.match", None, None).unwrap();
             count
         });
 
@@ -512,19 +512,19 @@ mod tests {
         .unwrap();
 
         let matched_py = Python::with_gil(|py| {
-            let twirl_match = py.import("twirl.match").unwrap();
+            let twirl_match = py.import_bound("twirl.match").unwrap();
 
-            let points1_py = points1.to_pyarray(py);
-            let points2_py = points2.to_pyarray(py);
+            let points1_py = points1.to_pyarray_bound(py);
+            let points2_py = points2.to_pyarray_bound(py);
 
-            let kwargs = [("tolerance", tol)].into_py_dict(py);
+            let kwargs = [("tolerance", tol)].into_py_dict_bound(py);
             let matched_py = twirl_match
-                .call_method("cross_match", (points1_py, points2_py), Some(kwargs))
+                .call_method("cross_match", (points1_py, points2_py), Some(&kwargs))
                 .unwrap()
                 .downcast::<PyArray2<isize>>()
-                .unwrap();
+                .unwrap().clone();
 
-            py.run("del twirl.match", None, None).unwrap();
+            // py.run_bound("del twirl.match", None, None).unwrap();
 
             matched_py.to_owned_array()
         });
@@ -560,19 +560,19 @@ mod tests {
         let trafo = twirl.find_transform().unwrap();
 
         let trafo_dyn_py = Python::with_gil(|py| {
-            let twirl_match = py.import("twirl.match").unwrap();
+            let twirl_match = py.import_bound("twirl.match").unwrap();
 
-            let pixels_py = pixels.to_pyarray(py);
-            let radecs_py = radecs.to_pyarray(py);
+            let pixels_py = pixels.to_pyarray_bound(py);
+            let radecs_py = radecs.to_pyarray_bound(py);
 
-            let kwargs = [("asterism", 3)].into_py_dict(py);
+            let kwargs = [("asterism", 3)].into_py_dict_bound(py);
             let trafo_py = twirl_match
-                .call_method("find_transform", (radecs_py, pixels_py), Some(kwargs))
+                .call_method("find_transform", (radecs_py, pixels_py), Some(&kwargs))
                 .unwrap()
                 .downcast::<PyArray2<f64>>()
-                .unwrap();
+                .unwrap().clone();
 
-            py.run("del twirl.match", None, None).unwrap();
+            // py.run_bound("del twirl.match", None, None).unwrap();
 
             trafo_py.readonly().as_matrix().clone_owned()
         });
@@ -616,18 +616,18 @@ mod tests {
         let trafo = twirl.find_transform().unwrap();
 
         let trafo_dyn_py = Python::with_gil(|py| {
-            let twirl_match = py.import("twirl.match").unwrap();
+            let twirl_match = py.import_bound("twirl.match").unwrap();
 
-            let pixels_py = pixels.to_pyarray(py);
-            let radecs_py = radecs.to_pyarray(py);
+            let pixels_py = pixels.to_pyarray_bound(py);
+            let radecs_py = radecs.to_pyarray_bound(py);
 
             let trafo_py = twirl_match
                 .call_method("find_transform", (radecs_py, pixels_py), None)
                 .unwrap()
                 .downcast::<PyArray2<f64>>()
-                .unwrap();
+                .unwrap().clone();
 
-            py.run("del twirl.match", None, None).unwrap();
+            // py.run_bound("del twirl.match", None, None).unwrap();
 
             trafo_py.readonly().as_matrix().clone_owned()
         });
@@ -672,7 +672,6 @@ mod tests {
         for (pixel, radec) in pixels.rows().into_iter().zip(radecs.rows()) {
             let pixel = Vector2::new(pixel[0], pixel[1]);
             let radec = Vector2::new(radec[0], radec[1]);
-
             assert_abs_diff_eq!(radec, wcs.pixel_to_world(pixel), epsilon = 1e-2);
         }
     }

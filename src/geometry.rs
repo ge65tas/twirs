@@ -56,7 +56,7 @@ pub(crate) fn u1u2<F: Float>(a: &Vector2<F>, b: &Vector2<F>) -> (Vector2<F>, Vec
 mod tests {
     use approx::assert_abs_diff_eq;
     use nalgebra::matrix;
-    use numpy::{PyArray2, ToPyArray};
+    use numpy::{PyArray2, ToPyArray, PyArrayMethods};
     use pyo3::prelude::*;
     use rand::Rng;
 
@@ -98,18 +98,18 @@ mod tests {
         let lstsq = QuadAsterism::get_transformation_matrix(quad1, quad2).unwrap();
 
         let lstsq_py = Python::with_gil(|py| {
-            let twirl_geo = py.import("twirl.geometry").unwrap();
+            let twirl_geo = py.import_bound("twirl.geometry").unwrap();
 
-            let point1_py = quad1.to_pyarray(py);
-            let point2_py = quad2.to_pyarray(py);
+            let point1_py = quad1.to_pyarray_bound(py);
+            let point2_py = quad2.to_pyarray_bound(py);
 
             let lstsq_py = twirl_geo
                 .call_method1("get_transform_matrix", (point1_py, point2_py))
                 .unwrap()
                 .downcast::<PyArray2<f64>>()
-                .unwrap();
+                .unwrap().clone();
 
-            py.run("del twirl.geometry", None, None).unwrap();
+            //py.run_bound("del twirl.geometry", None, None).unwrap();
 
             lstsq_py.readonly().as_matrix().clone_owned()
         });
