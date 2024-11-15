@@ -82,13 +82,13 @@ mod tests {
     fn get_transformation_matrix() {
         let mut rng = rand::thread_rng();
 
-        let quad1 = matrix![
+        let quad1: nalgebra::Matrix<f64, nalgebra::Const<4>, nalgebra::Const<2>, nalgebra::ArrayStorage<f64, 4, 2>> = matrix![
             rng.gen(), rng.gen();
             rng.gen(), rng.gen();
             rng.gen(), rng.gen();
             rng.gen(), rng.gen()
         ];
-        let quad2 = matrix![
+        let quad2: nalgebra::Matrix<f64, nalgebra::Const<4>, nalgebra::Const<2>, nalgebra::ArrayStorage<f64, 4, 2>> = matrix![
             rng.gen(), rng.gen();
             rng.gen(), rng.gen();
             rng.gen(), rng.gen();

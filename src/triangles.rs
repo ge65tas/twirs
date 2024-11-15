@@ -5,8 +5,7 @@ use std::cmp::Ordering;
 use std::ops::{Deref, DerefMut, Index, IndexMut, Sub};
 
 use itertools::Itertools;
-use kiddo::distance::squared_euclidean;
-use kiddo::KdTree;
+use kiddo::float::{kdtree::KdTree, distance::SquaredEuclidean};
 use nalgebra::{matrix, vector, Matrix3, Matrix3x2, Vector2, SVD};
 use ndarray::{Array2, ArrayView2};
 
@@ -208,7 +207,7 @@ impl<F: Float> TriangleAsterism<F> {
     }
 }
 
-impl<F: Default + Float + num_traits::Float> Asterism<F> for TriangleAsterism<F> {
+impl<F: Default + Float + num_traits::float::FloatCore> Asterism<F> for TriangleAsterism<F> {
     type Hashes = Array2<F>;
     type Polygons = Triangle<F>;
     type Matrix = Matrix3x2<F>;
@@ -220,7 +219,7 @@ impl<F: Default + Float + num_traits::Float> Asterism<F> for TriangleAsterism<F>
     ) -> Vec<[usize; 2]> {
         let mut pairs = Vec::new();
 
-        let pixel_tree: KdTree<F, 2> = hashes_pixels
+        let pixel_tree: KdTree<F, usize, 2, 32, u32> = hashes_pixels
             .rows()
             .into_iter()
             .enumerate()
@@ -229,10 +228,9 @@ impl<F: Default + Float + num_traits::Float> Asterism<F> for TriangleAsterism<F>
 
         for (i, row) in hashes_radecs.rows().into_iter().enumerate() {
             // TODO: Sorted better?
-            let matches = pixel_tree.within_unsorted(
+            let matches = pixel_tree.within_unsorted::<SquaredEuclidean>(
                 &[row[0], row[1]],
-                num_traits::Float::powi(tolerance, 2),
-                &squared_euclidean,
+                num_traits::float::FloatCore::powi(tolerance, 2),
             );
             for m in matches {
                 pairs.push([m.item, i]);

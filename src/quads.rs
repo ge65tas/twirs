@@ -6,8 +6,7 @@ use std::{
 };
 
 use itertools::Itertools;
-use kiddo::distance::squared_euclidean;
-use kiddo::KdTree;
+use kiddo::float::{kdtree::KdTree, distance::SquaredEuclidean};
 use nalgebra::{matrix, Matrix3, Matrix4x2, Vector2, SVD};
 use ndarray::{s, Array2, ArrayView2, Axis, ShapeError};
 
@@ -227,7 +226,7 @@ impl Default for QuadAsterism {
     }
 }
 
-impl<F: Float + num_traits::Float> Asterism<F> for QuadAsterism {
+impl<F: Float + num_traits::float::FloatCore> Asterism<F> for QuadAsterism {
     type Hashes = Array2<F>;
     type Polygons = Quad<F>;
     type Matrix = Matrix4x2<F>;
@@ -235,9 +234,9 @@ impl<F: Float + num_traits::Float> Asterism<F> for QuadAsterism {
     fn find_matches(
         hashes_pixels: Array2<F>,
         hashes_radecs: Array2<F>,
-        tolerance: F,
+        tolerance: F, 
     ) -> Vec<[usize; 2]> {
-        let pixel_tree: KdTree<F, 4> = hashes_pixels
+        let pixel_tree: KdTree<F, usize, 4, 32, u32> = hashes_pixels
             .rows()
             .into_iter()
             .enumerate()
@@ -250,10 +249,9 @@ impl<F: Float + num_traits::Float> Asterism<F> for QuadAsterism {
             .flat_map(|(i, row)| {
                 let mut pairs = Vec::new();
                 // TODO: Sorted better?
-                let matches = pixel_tree.within_unsorted(
+                let matches = pixel_tree.within_unsorted::<SquaredEuclidean>(
                     &[row[0], row[1], row[2], row[3]],
-                    num_traits::Float::powi(tolerance, 2),
-                    &squared_euclidean,
+                    num_traits::float::FloatCore::powi(tolerance, 2),
                 );
                 for m in matches {
                     pairs.push([m.item, i]);

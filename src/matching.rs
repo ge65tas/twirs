@@ -128,7 +128,7 @@ pub struct Twirs<F: Float, A: Asterism<F>> {
     min_match: Option<F>,
 }
 
-impl<F: Float + num_traits::Float> Twirs<F, TriangleAsterism<F>> {
+impl<F: Float + num_traits::float::FloatCore> Twirs<F, TriangleAsterism<F>> {
     /// Use triangle asterisms.
     /// Use `with_` functions to set parameters.
     ///
@@ -156,7 +156,7 @@ impl<F: Float + num_traits::Float> Twirs<F, TriangleAsterism<F>> {
     }
 }
 
-impl<F: Float + num_traits::Float> Twirs<F, QuadAsterism> {
+impl<F: Float + num_traits::float::FloatCore> Twirs<F, QuadAsterism> {
     /// Use quad asterisms.
     /// Use `with_` functions to set parameters.
     ///
