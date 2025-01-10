@@ -126,30 +126,34 @@ def init_wcs(crval, crpix, cd):
             .into();
 
             let crval_py = crval
-                .to_pyarray_bound(py)
+                .to_pyarray(py)
                 .call_method0("transpose")
                 .unwrap()
                 .call_method1("__getitem__", (0,))
                 .unwrap();
             let crpix_py = crpix
-                .to_pyarray_bound(py)
+                .to_pyarray(py)
                 .call_method0("transpose")
                 .unwrap()
                 .call_method1("__getitem__", (0,))
                 .unwrap();
-            let cd_py = cd.to_pyarray_bound(py);
+            let cd_py = cd.to_pyarray(py);
             let wcs = fun.call1(py, (crval_py, crpix_py, cd_py)).unwrap();
 
             let sky = wcs
                 .call_method1(py, "pixel_to_world", (pixel_to_transf.x, pixel_to_transf.y))
                 .unwrap();
             let sky = sky.downcast_bound::<PyList>(py).unwrap();
-            let ra = sky.get_item(0).unwrap()
+            let ra = sky
+                .get_item(0)
+                .unwrap()
                 .call_method0("__float__")
                 .unwrap()
                 .extract::<f64>()
                 .unwrap();
-            let dec = sky.get_item(1).unwrap()
+            let dec = sky
+                .get_item(1)
+                .unwrap()
                 .call_method0("__float__")
                 .unwrap()
                 .extract::<f64>()
@@ -163,12 +167,16 @@ def init_wcs(crval, crpix, cd):
                 )
                 .unwrap();
             let pix = pix.downcast_bound::<PyTuple>(py).unwrap();
-            let x = pix.get_item(0).unwrap()
+            let x = pix
+                .get_item(0)
+                .unwrap()
                 .call_method0("__float__")
                 .unwrap()
                 .extract::<f64>()
                 .unwrap();
-            let y = pix.get_item(1).unwrap()
+            let y = pix
+                .get_item(1)
+                .unwrap()
                 .call_method0("__float__")
                 .unwrap()
                 .extract::<f64>()

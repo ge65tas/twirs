@@ -6,7 +6,7 @@ use std::{
 };
 
 use itertools::Itertools;
-use kiddo::float::{kdtree::KdTree, distance::SquaredEuclidean};
+use kiddo::float::{distance::SquaredEuclidean, kdtree::KdTree};
 use nalgebra::{matrix, Matrix3, Matrix4x2, Vector2, SVD};
 use ndarray::{s, Array2, ArrayView2, Axis, ShapeError};
 
@@ -234,7 +234,7 @@ impl<F: Float + num_traits::float::FloatCore> Asterism<F> for QuadAsterism {
     fn find_matches(
         hashes_pixels: Array2<F>,
         hashes_radecs: Array2<F>,
-        tolerance: F, 
+        tolerance: F,
     ) -> Vec<[usize; 2]> {
         let pixel_tree: KdTree<F, usize, 4, 32, u32> = hashes_pixels
             .rows()
@@ -314,7 +314,7 @@ mod tests {
     use ndarray::array;
     use ndarray_rand::rand_distr::Normal;
     use ndarray_rand::RandomExt;
-    use numpy::{PyArray2, PyArray3, ToPyArray, PyArrayMethods};
+    use numpy::{PyArray2, PyArray3, PyArrayMethods, ToPyArray};
     use pyo3::{prelude::*, types::PyTuple};
     use rand::distributions::Uniform;
     use rand::prelude::*;
@@ -354,14 +354,15 @@ mod tests {
             .into_ndarray3();
 
         let ordered_points_py = Python::with_gil(|py| {
-            let twirl_quads = py.import_bound("twirl.quads").unwrap();
+            let twirl_quads = py.import("twirl.quads").unwrap();
 
-            let arr = quads.into_ndarray3().to_pyarray_bound(py);
+            let arr = quads.into_ndarray3().to_pyarray(py);
             let ordered_points_py = twirl_quads
                 .call_method1("reorder", (arr,))
                 .unwrap()
                 .downcast::<PyArray3<f64>>()
-                .unwrap().clone();
+                .unwrap()
+                .clone();
             ordered_points_py.to_owned_array()
         });
 
@@ -386,15 +387,21 @@ mod tests {
         let hashes = QuadAsterism::quad_hash(&quads);
 
         let hashes_py = Python::with_gil(|py| {
-            let twirl_quads = py.import_bound("twirl.quads").unwrap();
+            let twirl_quads = py.import("twirl.quads").unwrap();
 
-            let arr = quads.into_ndarray3().to_pyarray_bound(py);
+            let arr = quads.into_ndarray3().to_pyarray(py);
             let hashes_quads_py = twirl_quads
                 .call_method1("quad_hash", (arr,))
                 .unwrap()
                 .downcast::<PyTuple>()
-                .unwrap().clone();
-            let hashes_py = hashes_quads_py.get_item(0).unwrap().downcast::<PyArray2<f64>>().unwrap().clone();
+                .unwrap()
+                .clone();
+            let hashes_py = hashes_quads_py
+                .get_item(0)
+                .unwrap()
+                .downcast::<PyArray2<f64>>()
+                .unwrap()
+                .clone();
 
             hashes_py.to_owned_array()
         });
@@ -430,12 +437,22 @@ def hash(xy):
             .unwrap()
             .into();
 
-            let arr = points.to_pyarray_bound(py);
+            let arr = points.to_pyarray(py);
             let hashes_quads_py = fun.call1(py, (arr,)).unwrap();
             let hashes_quads_py = hashes_quads_py.downcast_bound::<PyTuple>(py).unwrap();
 
-            let hashes_py = hashes_quads_py.get_item(0).unwrap().downcast::<PyArray2<f64>>().unwrap().clone();
-            let quads_py = hashes_quads_py.get_item(1).unwrap().downcast::<PyArray3<f64>>().unwrap().clone();
+            let hashes_py = hashes_quads_py
+                .get_item(0)
+                .unwrap()
+                .downcast::<PyArray2<f64>>()
+                .unwrap()
+                .clone();
+            let quads_py = hashes_quads_py
+                .get_item(1)
+                .unwrap()
+                .downcast::<PyArray3<f64>>()
+                .unwrap()
+                .clone();
 
             let hashes_py = hashes_py.to_owned_array();
             let quads_py = quads_py.to_owned_array();
@@ -484,8 +501,8 @@ def pairs(hashes_pixels, hashes_radecs):
             .unwrap()
             .into();
 
-            let hashes1_py = hashes1.to_pyarray_bound(py);
-            let hashes2_py = hashes2.to_pyarray_bound(py);
+            let hashes1_py = hashes1.to_pyarray(py);
+            let hashes2_py = hashes2.to_pyarray(py);
             let pairs_py = fun.call1(py, (hashes1_py, hashes2_py)).unwrap();
             pairs_py.extract::<Vec<Vec<usize>>>(py).unwrap()
         });

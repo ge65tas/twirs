@@ -313,7 +313,7 @@ where
             .unzip();
 
         if radecs_traf.is_empty() {
-            return None
+            return None;
         }
 
         let radecs_traf = MatrixXx2::from_rows(&radecs_traf);
@@ -411,7 +411,7 @@ mod parallel {
                 .unzip();
 
             if radecs_traf.is_empty() {
-                return None
+                return None;
             }
 
             let radecs_traf = MatrixXx2::from_rows(&radecs_traf);
@@ -462,7 +462,7 @@ mod tests {
     use nalgebra::Vector2;
     use ndarray::{array, Array1, Array2};
     use ndarray_rand::{rand_distr::Normal, RandomExt};
-    use numpy::{PyArray2, ToPyArray, PyArrayMethods};
+    use numpy::{PyArray2, PyArrayMethods, ToPyArray};
     use pyo3::{prelude::*, types::IntoPyDict};
     use rand::{distributions::Uniform, Rng};
 
@@ -475,12 +475,12 @@ mod tests {
         let count = super::count_cross_match(points1.view(), points2.view(), tol);
 
         let count_py: usize = Python::with_gil(|py| {
-            let twirl_match = py.import_bound("twirl.match").unwrap();
+            let twirl_match = py.import("twirl.match").unwrap();
 
-            let points1_py = points1.to_pyarray_bound(py);
-            let points2_py = points2.to_pyarray_bound(py);
+            let points1_py = points1.to_pyarray(py);
+            let points2_py = points2.to_pyarray(py);
 
-            let kwargs = [("tol", tol)].into_py_dict_bound(py);
+            let kwargs = [("tol", tol)].into_py_dict(py).unwrap();
             let count = twirl_match
                 .call_method("count_cross_match", (points1_py, points2_py), Some(&kwargs))
                 .unwrap()
@@ -512,17 +512,18 @@ mod tests {
         .unwrap();
 
         let matched_py = Python::with_gil(|py| {
-            let twirl_match = py.import_bound("twirl.match").unwrap();
+            let twirl_match = py.import("twirl.match").unwrap();
 
-            let points1_py = points1.to_pyarray_bound(py);
-            let points2_py = points2.to_pyarray_bound(py);
+            let points1_py = points1.to_pyarray(py);
+            let points2_py = points2.to_pyarray(py);
 
-            let kwargs = [("tolerance", tol)].into_py_dict_bound(py);
+            let kwargs = [("tolerance", tol)].into_py_dict(py).unwrap();
             let matched_py = twirl_match
                 .call_method("cross_match", (points1_py, points2_py), Some(&kwargs))
                 .unwrap()
                 .downcast::<PyArray2<isize>>()
-                .unwrap().clone();
+                .unwrap()
+                .clone();
 
             // py.run_bound("del twirl.match", None, None).unwrap();
 
@@ -560,17 +561,18 @@ mod tests {
         let trafo = twirl.find_transform().unwrap();
 
         let trafo_dyn_py = Python::with_gil(|py| {
-            let twirl_match = py.import_bound("twirl.match").unwrap();
+            let twirl_match = py.import("twirl.match").unwrap();
 
-            let pixels_py = pixels.to_pyarray_bound(py);
-            let radecs_py = radecs.to_pyarray_bound(py);
+            let pixels_py = pixels.to_pyarray(py);
+            let radecs_py = radecs.to_pyarray(py);
 
-            let kwargs = [("asterism", 3)].into_py_dict_bound(py);
+            let kwargs = [("asterism", 3)].into_py_dict(py).unwrap();
             let trafo_py = twirl_match
                 .call_method("find_transform", (radecs_py, pixels_py), Some(&kwargs))
                 .unwrap()
                 .downcast::<PyArray2<f64>>()
-                .unwrap().clone();
+                .unwrap()
+                .clone();
 
             // py.run_bound("del twirl.match", None, None).unwrap();
 
@@ -616,16 +618,17 @@ mod tests {
         let trafo = twirl.find_transform().unwrap();
 
         let trafo_dyn_py = Python::with_gil(|py| {
-            let twirl_match = py.import_bound("twirl.match").unwrap();
+            let twirl_match = py.import("twirl.match").unwrap();
 
-            let pixels_py = pixels.to_pyarray_bound(py);
-            let radecs_py = radecs.to_pyarray_bound(py);
+            let pixels_py = pixels.to_pyarray(py);
+            let radecs_py = radecs.to_pyarray(py);
 
             let trafo_py = twirl_match
                 .call_method("find_transform", (radecs_py, pixels_py), None)
                 .unwrap()
                 .downcast::<PyArray2<f64>>()
-                .unwrap().clone();
+                .unwrap()
+                .clone();
 
             // py.run_bound("del twirl.match", None, None).unwrap();
 

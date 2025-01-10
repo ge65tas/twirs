@@ -56,7 +56,7 @@ pub(crate) fn u1u2<F: Float>(a: &Vector2<F>, b: &Vector2<F>) -> (Vector2<F>, Vec
 mod tests {
     use approx::assert_abs_diff_eq;
     use nalgebra::matrix;
-    use numpy::{PyArray2, ToPyArray, PyArrayMethods};
+    use numpy::{PyArray2, PyArrayMethods, ToPyArray};
     use pyo3::prelude::*;
     use rand::Rng;
 
@@ -82,13 +82,23 @@ mod tests {
     fn get_transformation_matrix() {
         let mut rng = rand::thread_rng();
 
-        let quad1: nalgebra::Matrix<f64, nalgebra::Const<4>, nalgebra::Const<2>, nalgebra::ArrayStorage<f64, 4, 2>> = matrix![
+        let quad1: nalgebra::Matrix<
+            f64,
+            nalgebra::Const<4>,
+            nalgebra::Const<2>,
+            nalgebra::ArrayStorage<f64, 4, 2>,
+        > = matrix![
             rng.gen(), rng.gen();
             rng.gen(), rng.gen();
             rng.gen(), rng.gen();
             rng.gen(), rng.gen()
         ];
-        let quad2: nalgebra::Matrix<f64, nalgebra::Const<4>, nalgebra::Const<2>, nalgebra::ArrayStorage<f64, 4, 2>> = matrix![
+        let quad2: nalgebra::Matrix<
+            f64,
+            nalgebra::Const<4>,
+            nalgebra::Const<2>,
+            nalgebra::ArrayStorage<f64, 4, 2>,
+        > = matrix![
             rng.gen(), rng.gen();
             rng.gen(), rng.gen();
             rng.gen(), rng.gen();
@@ -98,16 +108,17 @@ mod tests {
         let lstsq = QuadAsterism::get_transformation_matrix(quad1, quad2).unwrap();
 
         let lstsq_py = Python::with_gil(|py| {
-            let twirl_geo = py.import_bound("twirl.geometry").unwrap();
+            let twirl_geo = py.import("twirl.geometry").unwrap();
 
-            let point1_py = quad1.to_pyarray_bound(py);
-            let point2_py = quad2.to_pyarray_bound(py);
+            let point1_py = quad1.to_pyarray(py);
+            let point2_py = quad2.to_pyarray(py);
 
             let lstsq_py = twirl_geo
                 .call_method1("get_transform_matrix", (point1_py, point2_py))
                 .unwrap()
                 .downcast::<PyArray2<f64>>()
-                .unwrap().clone();
+                .unwrap()
+                .clone();
 
             //py.run_bound("del twirl.geometry", None, None).unwrap();
 

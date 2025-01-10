@@ -30,7 +30,7 @@ impl<N: Scalar> IntoNdarray2 for Array2<N> {
 
 impl<N: Scalar, C: Dim, R: Dim, S: Storage<N, R, C>> IntoNdarray2 for Matrix<N, R, C, S>
 where
-    DefaultAllocator: Allocator<N, R, C, Buffer = S>,
+    DefaultAllocator: Allocator<R, C, Buffer<N> = S>,
 {
     type Out = Array2<N>;
 

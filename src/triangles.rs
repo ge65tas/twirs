@@ -5,7 +5,7 @@ use std::cmp::Ordering;
 use std::ops::{Deref, DerefMut, Index, IndexMut, Sub};
 
 use itertools::Itertools;
-use kiddo::float::{kdtree::KdTree, distance::SquaredEuclidean};
+use kiddo::float::{distance::SquaredEuclidean, kdtree::KdTree};
 use nalgebra::{matrix, vector, Matrix3, Matrix3x2, Vector2, SVD};
 use ndarray::{Array2, ArrayView2};
 
@@ -289,11 +289,11 @@ mod tests {
     use crate::ndarray_utils::IntoNdarray3;
 
     use super::*;
+    use approx::assert_abs_diff_eq;
     use ndarray_rand::{rand_distr::Normal, RandomExt};
-    use numpy::{PyArray2, PyArray3, ToPyArray, PyArrayMethods};
+    use numpy::{PyArray2, PyArray3, PyArrayMethods, ToPyArray};
     use pyo3::{prelude::*, types::PyTuple};
     use rand::{distributions::Uniform, prelude::*};
-    use approx::assert_abs_diff_eq;
 
     #[test]
     fn order_points() {
@@ -314,14 +314,15 @@ mod tests {
             .into_ndarray3();
 
         let ordered_points_py = Python::with_gil(|py| {
-            let twirl_tri = py.import_bound("twirl.triangles").unwrap();
+            let twirl_tri = py.import("twirl.triangles").unwrap();
 
-            let arr = triangles.into_ndarray3().to_pyarray_bound(py);
+            let arr = triangles.into_ndarray3().to_pyarray(py);
             let ordered_points_py = twirl_tri
                 .call_method1("order_points", (arr,))
                 .unwrap()
                 .downcast::<PyArray3<f64>>()
-                .unwrap().clone();
+                .unwrap()
+                .clone();
             ordered_points_py.to_owned_array()
         });
 
@@ -336,20 +337,31 @@ mod tests {
         let (hashes, triangles) = ast.hashes(points.view());
 
         let (hashes_py, triangles_py) = Python::with_gil(|py| {
-            let twirl_tri = py.import_bound("twirl.triangles").unwrap();
+            let twirl_tri = py.import("twirl.triangles").unwrap();
 
-            let arr = points.to_pyarray_bound(py);
+            let arr = points.to_pyarray(py);
             let hashes_triangles_py = twirl_tri
                 .call_method1("hashes", (arr,))
                 .unwrap()
                 .downcast::<PyTuple>()
-                .unwrap().clone();
-            let hashes_py = hashes_triangles_py.get_item(0).unwrap().downcast::<PyArray2<f64>>().unwrap().clone();
-            let triangles_py = hashes_triangles_py.get_item(1).unwrap().downcast::<PyArray3<f64>>().unwrap().clone();
+                .unwrap()
+                .clone();
+            let hashes_py = hashes_triangles_py
+                .get_item(0)
+                .unwrap()
+                .downcast::<PyArray2<f64>>()
+                .unwrap()
+                .clone();
+            let triangles_py = hashes_triangles_py
+                .get_item(1)
+                .unwrap()
+                .downcast::<PyArray3<f64>>()
+                .unwrap()
+                .clone();
 
             (hashes_py.to_owned_array(), triangles_py.to_owned_array())
         });
-            
+
         assert_abs_diff_eq!(hashes, hashes_py, epsilon = 1e-6);
         assert_eq!(triangles.into_ndarray3(), triangles_py);
     }
@@ -391,8 +403,8 @@ def pairs(hashes_pixels, hashes_radecs):
             .unwrap()
             .into();
 
-            let hashes1_py = hashes1.to_pyarray_bound(py);
-            let hashes2_py = hashes2.to_pyarray_bound(py);
+            let hashes1_py = hashes1.to_pyarray(py);
+            let hashes2_py = hashes2.to_pyarray(py);
             let pairs_py = fun.call1(py, (hashes1_py, hashes2_py)).unwrap();
             pairs_py.extract::<Vec<Vec<usize>>>(py).unwrap()
         });

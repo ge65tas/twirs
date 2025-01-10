@@ -14,10 +14,10 @@ default = ["parallel"]
 parallel = ["rayon", "ndarray/rayon"]
 
 [dependencies]
-itertools = "0.13.0"
-kiddo = "4.2.1"
+itertools = "0.14.0"
+kiddo = "5.0.3"
 log = "0.4.22"
-nalgebra = "0.32.3"
+nalgebra = "0.33.2"
 ndarray = "0.16.1"
 num-traits = "0.2.19"
 rayon = { version = "1.10.0", optional = true }
@@ -27,8 +27,8 @@ approx = "0.5.1"
 criterion = "0.5.1"
 ndarray = { version = "0.16.1", features = ["approx", "rayon"] }
 ndarray-rand = "0.15.0"
-numpy = { version = "0.22.1", features = ["nalgebra"] }
-pyo3 = { version = "0.22.6", features = ["auto-initialize"] }
+numpy = { version = "0.23.0", features = ["nalgebra"] }
+pyo3 = { version = "0.23.3", features = ["auto-initialize"] }
 rand = "0.8.5"
 simplelog = "0.12.2"
 
