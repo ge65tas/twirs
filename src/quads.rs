@@ -312,11 +312,12 @@ mod tests {
     use approx::assert_abs_diff_eq;
     use nalgebra::matrix;
     use ndarray::array;
-    use ndarray_rand::rand_distr::Normal;
-    use ndarray_rand::RandomExt;
+    use ndarray_rand::{
+        rand_distr::{Normal, Uniform},
+        RandomExt,
+    };
     use numpy::{PyArray2, PyArray3, PyArrayMethods, ToPyArray};
-    use pyo3::{prelude::*, types::PyTuple};
-    use rand::distributions::Uniform;
+    use pyo3::{ffi::c_str, prelude::*, types::PyTuple};
     use rand::prelude::*;
 
     #[test]
@@ -333,15 +334,15 @@ mod tests {
 
     #[test]
     fn order_points() {
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
 
         let quads = (0..10)
             .map(|_| {
                 Quad::<f64>::new(
-                    Vector2::new(rng.gen(), rng.gen()),
-                    Vector2::new(rng.gen(), rng.gen()),
-                    Vector2::new(rng.gen(), rng.gen()),
-                    Vector2::new(rng.gen(), rng.gen()),
+                    Vector2::new(rng.random(), rng.random()),
+                    Vector2::new(rng.random(), rng.random()),
+                    Vector2::new(rng.random(), rng.random()),
+                    Vector2::new(rng.random(), rng.random()),
                 )
             })
             .collect_vec();
@@ -371,15 +372,15 @@ mod tests {
 
     #[test]
     fn quad_hash() {
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
 
         let quads = (0..4)
             .map(|_| {
                 Quad::<f64>::new(
-                    Vector2::new(rng.gen(), rng.gen()),
-                    Vector2::new(rng.gen(), rng.gen()),
-                    Vector2::new(rng.gen(), rng.gen()),
-                    Vector2::new(rng.gen(), rng.gen()),
+                    Vector2::new(rng.random(), rng.random()),
+                    Vector2::new(rng.random(), rng.random()),
+                    Vector2::new(rng.random(), rng.random()),
+                    Vector2::new(rng.random(), rng.random()),
                 )
             })
             .collect_vec();
@@ -416,9 +417,10 @@ mod tests {
         let (hashes, quads) = QuadAsterism::hashes_unsorted(points.view());
 
         let (hashes_py, quads_py) = Python::with_gil(|py| {
-            let fun: Py<PyAny> = PyModule::from_code_bound(
+            let fun: Py<PyAny> = PyModule::from_code(
                 py,
-                "import numpy as np
+                c_str!(
+                    "import numpy as np
 import itertools
 import twirl.quads as q
 
@@ -428,9 +430,10 @@ def hash(xy):
     ordered_quads = q.reorder(quads)
     good_ordered_quads = ordered_quads[q.good_quads(ordered_quads)]
     hashes = q.quad_hash(good_ordered_quads)[0]
-    return hashes, good_ordered_quads",
-                "test",
-                "test",
+    return hashes, good_ordered_quads"
+                ),
+                c_str!("test"),
+                c_str!("test"),
             )
             .unwrap()
             .getattr("hash")
@@ -477,9 +480,10 @@ def hash(xy):
         let pairs = QuadAsterism::find_matches(hashes1.clone(), hashes2.clone(), 0.02);
 
         let pairs_py = Python::with_gil(|py| {
-            let fun: Py<PyAny> = PyModule::from_code_bound(
+            let fun: Py<PyAny> = PyModule::from_code(
                 py,
-                "from scipy.spatial import cKDTree
+                c_str!(
+                    "from scipy.spatial import cKDTree
 
 def pairs(hashes_pixels, hashes_radecs):
     tree_pixels = cKDTree(hashes_pixels)
@@ -492,9 +496,10 @@ def pairs(hashes_pixels, hashes_radecs):
         if len(j) > 0:
             pairs += [[i, k] for k in j]
 
-    return pairs",
-                "test",
-                "test",
+    return pairs"
+                ),
+                c_str!("test"),
+                c_str!("test"),
             )
             .unwrap()
             .getattr("pairs")

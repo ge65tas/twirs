@@ -290,21 +290,24 @@ mod tests {
 
     use super::*;
     use approx::assert_abs_diff_eq;
-    use ndarray_rand::{rand_distr::Normal, RandomExt};
+    use ndarray_rand::{
+        rand_distr::{Normal, Uniform},
+        RandomExt,
+    };
     use numpy::{PyArray2, PyArray3, PyArrayMethods, ToPyArray};
-    use pyo3::{prelude::*, types::PyTuple};
-    use rand::{distributions::Uniform, prelude::*};
+    use pyo3::{ffi::c_str, prelude::*, types::PyTuple};
+    use rand::prelude::*;
 
     #[test]
     fn order_points() {
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
 
         let triangles = (0..10)
             .map(|_| {
                 Triangle::<f64>::new(
-                    Vector2::new(rng.gen(), rng.gen()),
-                    Vector2::new(rng.gen(), rng.gen()),
-                    Vector2::new(rng.gen(), rng.gen()),
+                    Vector2::new(rng.random(), rng.random()),
+                    Vector2::new(rng.random(), rng.random()),
+                    Vector2::new(rng.random(), rng.random()),
                 )
             })
             .collect_vec();
@@ -379,9 +382,10 @@ mod tests {
         let pairs = TriangleAsterism::find_matches(hashes1.clone(), hashes2.clone(), 0.02);
 
         let pairs_py = Python::with_gil(|py| {
-            let fun: Py<PyAny> = PyModule::from_code_bound(
+            let fun: Py<PyAny> = PyModule::from_code(
                 py,
-                "from scipy.spatial import cKDTree
+                c_str!(
+                    "from scipy.spatial import cKDTree
 
 def pairs(hashes_pixels, hashes_radecs):
     tree_pixels = cKDTree(hashes_pixels)
@@ -394,9 +398,10 @@ def pairs(hashes_pixels, hashes_radecs):
         if len(j) > 0:
             pairs += [[i, k] for k in j]
 
-    return pairs",
-                "test",
-                "test",
+    return pairs"
+                ),
+                c_str!("test"),
+                c_str!("test"),
             )
             .unwrap()
             .getattr("pairs")

@@ -2,15 +2,15 @@
 use criterion::{criterion_group, criterion_main, BatchSize, Criterion};
 use itertools::Itertools;
 use ndarray::{array, Array1, Array2};
-use ndarray_rand::RandomExt;
-use rand::{distributions::Uniform, Rng};
+use ndarray_rand::{rand_distr::Uniform, RandomExt};
+use rand::Rng;
 use twirs::{QuadAsterism, Twirs};
 
 fn twirl() -> (Twirs<f64, QuadAsterism>, Array2<f64>, Array2<f64>) {
-    let mut rng = rand::thread_rng();
+    let mut rng = rand::rng();
 
     let shape = (15, 2);
-    let angle: f64 = rng.gen();
+    let angle: f64 = rng.random();
     let rot = array![[angle.cos(), -angle.sin()], [angle.sin(), angle.cos()]];
     let offset = Array1::random(2, Uniform::new(0., 1.));
 

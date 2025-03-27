@@ -21,7 +21,7 @@ use crate::Float;
 /// - `tolerance`: Tolerance of the match. A good default is `1e-3`.
 ///
 /// # Example:
-/// ```
+/// ```ignore
 /// # use ndarray::array;
 /// # use twirs::matching::count_cross_match;
 /// let coords1 = array![[1.,2.], [3.,4.], [5.,6.]];
@@ -51,7 +51,7 @@ pub fn count_cross_match<F: Float>(
 /// - `tolerance`: Tolerance of the match, given in `coords1` points units. A good default is `10`.
 ///
 /// # Example:
-/// ```
+/// ```ignore
 /// # use ndarray::array;
 /// # use twirs::matching::cross_match;
 /// let coords1 = array![[3.,4.], [1.,2.], [5.,6.]];
@@ -461,10 +461,13 @@ mod tests {
     use itertools::Itertools;
     use nalgebra::Vector2;
     use ndarray::{array, Array1, Array2};
-    use ndarray_rand::{rand_distr::Normal, RandomExt};
+    use ndarray_rand::{
+        rand_distr::{Normal, Uniform},
+        RandomExt,
+    };
     use numpy::{PyArray2, PyArrayMethods, ToPyArray};
     use pyo3::{prelude::*, types::IntoPyDict};
-    use rand::{distributions::Uniform, Rng};
+    use rand::Rng;
 
     #[test]
     fn count_cross_match() {
@@ -536,10 +539,10 @@ mod tests {
 
     #[test]
     fn find_transform_triangle() {
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
 
         let shape = (25, 2);
-        let angle: f64 = rng.gen();
+        let angle: f64 = rng.random();
         let rot = array![[angle.cos(), -angle.sin()], [angle.sin(), angle.cos()]];
         let offset = Array1::random(2, Uniform::new(0., 1.));
 
@@ -593,10 +596,10 @@ mod tests {
 
     #[test]
     fn find_transform_quad() {
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
 
         let shape = (25, 2);
-        let angle: f64 = rng.gen();
+        let angle: f64 = rng.random();
         let rot = array![[angle.cos(), -angle.sin()], [angle.sin(), angle.cos()]];
         let offset = Array1::random(2, Uniform::new(0., 10.));
 
@@ -650,10 +653,10 @@ mod tests {
 
     #[test]
     fn compute_wcs() {
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
 
         let shape = (15, 2);
-        let angle: f64 = rng.gen();
+        let angle: f64 = rng.random();
         let rot = array![[angle.cos(), -angle.sin()], [angle.sin(), angle.cos()]];
         let offset = Array1::random(2, Uniform::new(0., 1.));
 

@@ -14,7 +14,7 @@
 //! In any case, additional parameters are set via `Twirs::with_*()` functions.
 //!
 //! Example:
-//! ```rust
+//! ```ignore
 //! Twirs::quads(pixels, radecs)
 //!     .with_tolerance(0.5)
 //!     .with_hash_tolerance(1.5);

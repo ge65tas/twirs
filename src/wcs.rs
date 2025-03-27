@@ -79,7 +79,8 @@ mod tests {
     use approx::assert_abs_diff_eq;
     use numpy::ToPyArray;
     use pyo3::{
-        types::{IntoPyDict, PyAnyMethods, PyList, PyModule, PyTuple},
+        ffi::c_str,
+        types::{PyAnyMethods, PyList, PyModule, PyTuple},
         Py, PyAny, Python,
     };
     use rand::Rng;
@@ -88,37 +89,41 @@ mod tests {
 
     #[test]
     fn astropy() {
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
 
-        let crval = Vector2::new(rng.gen_range(0.0..45.0), rng.gen_range(0.0..45.0));
-        let crpix = Vector2::new(rng.gen_range(0.0..10.0), rng.gen_range(0.0..10.0));
+        let crval = Vector2::new(rng.random_range(0.0..45.0), rng.random_range(0.0..45.0));
+        let crpix = Vector2::new(rng.random_range(0.0..10.0), rng.random_range(0.0..10.0));
         let cd = Matrix2::new(
-            rng.gen_range(0.0..1.0),
-            rng.gen_range(0.0..1.0),
-            rng.gen_range(0.0..1.0),
-            rng.gen_range(0.0..1.0),
+            rng.random_range(0.0..1.0),
+            rng.random_range(0.0..1.0),
+            rng.random_range(0.0..1.0),
+            rng.random_range(0.0..1.0),
         );
 
-        let pixel_to_transf = Vector2::new(rng.gen_range(0.0..10.0), rng.gen_range(0.0..10.0));
-        let radec_to_transf = Vector2::new(rng.gen_range(0.0..45.0), rng.gen_range(0.0..45.0));
+        let pixel_to_transf =
+            Vector2::new(rng.random_range(0.0..10.0), rng.random_range(0.0..10.0));
+        let radec_to_transf =
+            Vector2::new(rng.random_range(0.0..45.0), rng.random_range(0.0..45.0));
 
         let wcs = Wcs::new(crpix, crval, cd);
         let pixel = wcs.world_to_pixel(radec_to_transf);
         let radec = wcs.pixel_to_world(pixel_to_transf);
 
         let (x, y, ra, dec) = Python::with_gil(|py| {
-            let fun: Py<PyAny> = PyModule::from_code_bound(
+            let fun: Py<PyAny> = PyModule::from_code(
                 py,
-                "import astropy.wcs
+                c_str!(
+                    "import astropy.wcs
 
 def init_wcs(crval, crpix, cd):
     w = astropy.wcs.WCS(naxis=2)
     w.wcs.crval = crval
     w.wcs.crpix = crpix
     w.wcs.cd = cd
-    return w",
-                "test",
-                "test",
+    return w"
+                ),
+                c_str!("test"),
+                c_str!("test"),
             )
             .unwrap()
             .getattr("init_wcs")

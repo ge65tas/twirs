@@ -80,7 +80,7 @@ mod tests {
 
     #[test]
     fn get_transformation_matrix() {
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
 
         let quad1: nalgebra::Matrix<
             f64,
@@ -88,10 +88,10 @@ mod tests {
             nalgebra::Const<2>,
             nalgebra::ArrayStorage<f64, 4, 2>,
         > = matrix![
-            rng.gen(), rng.gen();
-            rng.gen(), rng.gen();
-            rng.gen(), rng.gen();
-            rng.gen(), rng.gen()
+            rng.random(), rng.random();
+            rng.random(), rng.random();
+            rng.random(), rng.random();
+            rng.random(), rng.random()
         ];
         let quad2: nalgebra::Matrix<
             f64,
@@ -99,10 +99,10 @@ mod tests {
             nalgebra::Const<2>,
             nalgebra::ArrayStorage<f64, 4, 2>,
         > = matrix![
-            rng.gen(), rng.gen();
-            rng.gen(), rng.gen();
-            rng.gen(), rng.gen();
-            rng.gen(), rng.gen()
+            rng.random(), rng.random();
+            rng.random(), rng.random();
+            rng.random(), rng.random();
+            rng.random(), rng.random()
         ];
 
         let lstsq = QuadAsterism::get_transformation_matrix(quad1, quad2).unwrap();
